@@ -30,6 +30,12 @@ if [[ -f "./install.sh"  ]]; then
   exit 1
 fi
 
+APTINSTALL="apt-get install -y --no-install-recommends"
+
+apt-get -y update
+$APTINSTALL git
+apt-get -y upgrade
+
 git clone -b "${BRANCH}" https://github.com/jradxl/nextcloud-ubuntu.git 
 RET="$?"
 if [[ $RET = "0" ]]; then
