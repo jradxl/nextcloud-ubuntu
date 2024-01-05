@@ -15,7 +15,7 @@ install_script()
   #echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/ubuntu `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list
   
   #Adding Ondrej Nginx as we're using Ondrej's PHP
-  DEBIAN_FRONTEND=noninteractive LC_ALL=en_US.UTF-8 $APTREPOSITORY ppa:ondrej/nginx
+  DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8 $APTREPOSITORY ppa:ondrej/nginx
   apt-get update
   echo "Installing NGINX package..."
   $APTINSTALL nginx

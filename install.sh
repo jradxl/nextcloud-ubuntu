@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # NextCloudPi installation script
 #
 # Copyleft 2017 by Ignacio Nunez Hernanz <nacho _a_t_ ownyourbits _d_o_t_ com>
@@ -35,9 +35,9 @@ apt-get update
 $APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq
 locale-gen en_GB.utf8 en_US.utf8
 
-
 echo -e "\nInstalling NextCloud-Ubuntu..."
-# shellcheck source=scripts/library.sh
+
+# shellcheck source=/dev/null
 source scripts/library.sh
 
 # check distro
@@ -47,16 +47,6 @@ check_distro etc/ncp.cfg || {
   exit 1;
 }
 
-
-
-#mkdir -p /usr/local/etc/ncp-config.d/
-#cp etc/ncp-config.d/nc-nextcloud.cfg /usr/local/etc/ncp-config.d/
-#cp etc/library.sh /usr/local/etc/
-#cp etc/ncp.cfg /usr/local/etc/
-#cp -r etc/ncp-templates /usr/local/etc/
-
-##install_app    lamp.sh
-#LEMP Linux. Nginx, MariaDB, PHP 
 install_app    nginx.sh
 install_app    php-fpm.sh
 install_app    mariadb.sh
@@ -70,45 +60,6 @@ needrestart -b
 
 echo "FINISHED."
 exit 0
-
-##Check Nginx, PHP-FPM and MariaDB are running
-install_app    bin/ncp/CONFIG/nc-nextcloud.sh
-run_app_unsafe bin/ncp/CONFIG/nc-nextcloud.sh
-
-rm /usr/local/etc/ncp-config.d/nc-nextcloud.cfg    # armbian overlay is ro
-
-systemctl restart mysqld # TODO this shouldn't be necessary, but somehow it's needed in Debian 9.6. Fixme
-install_app    ncp.sh
-run_app_unsafe bin/ncp/CONFIG/nc-init.sh
-echo 'Moving data directory to a more sensible location'
-df -h
-mkdir -p /opt/ncdata
-[[ -f "/usr/local/etc/ncp-config.d/nc-datadir.cfg" ]] || {
-  should_rm_datadir_cfg=true
-  cp etc/ncp-config.d/nc-datadir.cfg /usr/local/etc/ncp-config.d/nc-datadir.cfg
-}
-DISABLE_FS_CHECK=1 NCPCFG="/usr/local/etc/ncp.cfg" run_app_unsafe bin/ncp/CONFIG/nc-datadir.sh
-[[ -z "$should_rm_datadir_cfg" ]] || rm /usr/local/etc/ncp-config.d/nc-datadir.cfg
-rm /.ncp-image
-
-# skip on Armbian / Vagrant / LXD ...
-[[ "${CODE_DIR}" != "" ]] || bash /usr/local/bin/ncp-provisioning.sh
-
-cd -
-rm -rf "${TEMPDIR}"
-
-IP="$(get_ip)"
-
-echo "Done.
-
-First: Visit https://$IP/  https://nextcloudpi.local/ (also https://nextcloudpi.lan/ or https://nextcloudpi/ on windows and mac)
-to activate your instance of NC, and save the auto generated passwords. You may review or reset them
-anytime by using nc-admin and nc-passwd.
-Second: Type 'sudo ncp-config' to further configure NCP, or access ncp-web on https://$IP:4443/
-Note: You will have to add an exception, to bypass your browser warning when you
-first load the activation and :4443 pages. You can run letsencrypt to get rid of
-the warning if you have a (sub)domain available.
-"
 
 # License
 #

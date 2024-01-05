@@ -7,12 +7,9 @@ export DEBIAN_FRONTEND=noninteractive
 install_script()
 {
   echo "Installing PHP-FPM..."
-  ##8.2
-  DEBIAN_FRONTEND=noninteractive LC_ALL=en_US.UTF-8 $APTREPOSITORY ppa:ondrej/php
   
+  DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8 $APTREPOSITORY ppa:ondrej/php
   apt-get update
-  DEBIAN_FRONTEND=noninteractive LC_ALL=en_US.UTF-8  $APTINSTALL php8.2-fpm
-
   PHPVER=8.2
   $APTINSTALL \
   php${PHPVER} php${PHPVER}-curl php${PHPVER}-gd php${PHPVER}-fpm php${PHPVER}-cli php${PHPVER}-opcache \
