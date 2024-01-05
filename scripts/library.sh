@@ -14,6 +14,7 @@ function check_distro()
 {
   local cfg="${1:-$NCPCFG}"
   local supported=$(jq -r .release "$cfg")
+  #TODO check value in case of pasing error
   grep -q "$supported" <(lsb_release -sc) && return 0
   return 1
 }

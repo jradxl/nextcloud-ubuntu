@@ -32,7 +32,7 @@ rm -f /etc/apt/sources.list.d/mariadb.list.old*
 apt-get update
 
 ##Only EN, US and GB language-pack
-$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq
+$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq ssl-cert expect
 locale-gen en_GB.utf8 en_US.utf8
 
 echo -e "\nInstalling NextCloud-Ubuntu..."
