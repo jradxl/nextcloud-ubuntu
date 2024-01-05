@@ -9,18 +9,23 @@
 #
 # more details at https://ownyourbits.com
 
-BRANCH="${BRANCH:-master}"
+BRANCH="${BRANCH:-main}"
 #DBG=x
 
 set -e"$DBG"
-
-TEMPDIR="$(mktemp -d /tmp/nextcloud-ubuntu-XXXXX || (echo "Failed to create temp dir. Exiting" >&2 ; exit 1) )"
-trap 'rm -rf \"${TEMPDIR}\"' 0 1 2 3 15
 
 [[ ${EUID} -ne 0 ]] && {
   printf "Must be run as root. Try 'sudo %s'\n", "$0"
   #exit 1
 }
+
+##Temp Dir and contents must exist thru multiple invocations to aid development and debugging.
+TEMPDIR="/tmp/nc-ubuntu"
+mkdir -p "$TEMPDIR" || { echo "Failure to create temp dir." ; exit 1 ; }
+echo "Temp Created: $TEMPDIR"
+CODE_DIR_TMP="${TEMPDIR}"/nextcloud-ubuntu
+
+##trap 'rm -rf \"${TEMPDIR}\"' 0 1 2 3 15
 
 export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
 
@@ -29,19 +34,20 @@ type mysqld &>/dev/null && echo ">>> WARNING: existing mysqld configuration will
 type mysqld &>/dev/null && mysql -e 'use nextcloud' &>/dev/null && { echo "The 'nextcloud' database already exists. Aborting"; exit 1; }
 
 # get dependencies
-sudo apt-get update
-sudo apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release wget curl
+apt-get update
+apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release wget curl
 
-# get install code
-if [[ "${CODE_DIR}" == "" ]]; then
-  echo "Getting build code..."
-  CODE_DIR_TMP="${TEMPDIR}"/nextcloud-ubuntu
+# get install code for first time...
+if [[ ! -f "$CODE_DIR_TMP/install.sh" ]]; then
+  echo "Getting build code for first time..."
   #git clone -b "${BRANCH}" https://github.com/jradxl/nextcloud-ubuntu.git "${CODE_DIR_TMP}"
   git clone https://github.com/jradxl/nextcloud-ubuntu.git "${CODE_DIR_TMP}"
-  cd "$CODE_DIR_TMP"
 else
-  cd "${CODE_DIR}"
+  echo "Code already downloaded, so checking for updates..."
+  git pull
 fi
+
+cd "$CODE_DIR_TMP"
 
 # install NCP
 echo -e "\nInstalling NextCloud-Ubuntu..."
@@ -67,10 +73,17 @@ cp etc/library.sh /usr/local/etc/
 cp etc/ncp.cfg /usr/local/etc/
 
 cp -r etc/ncp-templates /usr/local/etc/
-install_app    lamp.sh
+
+##install_app    lamp.sh
+#Linux. Nginx, MariaDB, PHP
+install_app    lnmp.sh
+
+##Check Nginx, PHP-FPM and MariaDB are running
 install_app    bin/ncp/CONFIG/nc-nextcloud.sh
 run_app_unsafe bin/ncp/CONFIG/nc-nextcloud.sh
+
 rm /usr/local/etc/ncp-config.d/nc-nextcloud.cfg    # armbian overlay is ro
+
 systemctl restart mysqld # TODO this shouldn't be necessary, but somehow it's needed in Debian 9.6. Fixme
 install_app    ncp.sh
 run_app_unsafe bin/ncp/CONFIG/nc-init.sh
