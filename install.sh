@@ -20,6 +20,7 @@ set -e"$DBG"
 }
 
 export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
+APTINSTALL="apt-get install -y --no-install-recommends"
 
 # check installed software
 type mysqld &>/dev/null && echo ">>> WARNING: existing mysqld configuration will be changed <<<"
@@ -31,7 +32,7 @@ rm -f /etc/apt/sources.list.d/mariadb.list.old*
 apt-get update
 
 ##Only EN, US and GB language-pack
-apt-get install --no-install-recommends -y language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart
+$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq
 locale-gen en_GB.utf8 en_US.utf8
 
 
