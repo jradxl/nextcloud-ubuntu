@@ -1,0 +1,9 @@
+Script started on 2024-01-05 14:51:38+01:00 [TERM="xterm-256color" TTY="/dev/pts/4" COLUMNS="197" LINES="17"]
+
+ [32;01m*[0m [35;01mkeychain [0m[36m2.8.5[0m ~ [32;01mhttp://www.funtoo.org[0m
+ [32;01m*[0m Found existing ssh-agent: [36m2622[0m
+ [32;01m*[0m Starting gpg-agent...
+
+256 SHA256:CMfVy1wI8fE5C+5cyGDoiiwPY6wBtLABGiS6qmfZvIc jradxl@gmail.com (ED25519)
+[?2004h]0;root@nc-ubuntu1: ~/nc-ubuntu/nextcloud-ubunturoot@nc-ubuntu1:~/nc-ubuntu/nextcloud-ubuntu# 
+Script done on 2024-01-05 14:52:26+01:00 [COMMAND_EXIT_CODE="0"]

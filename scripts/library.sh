@@ -9,7 +9,7 @@
 #
 
 export CFGDIR=/usr/local/etc/ncp-config.d
-export BINDIR=/usr/local/bin/ncp
+export BINDIR="$(pwd)"
 export NCDIR=/var/www/nextcloud
 export ncc=/usr/local/bin/ncc
 export NCPCFG=${NCPCFG:-etc/ncp.cfg}
@@ -409,20 +409,12 @@ function info_app()
 function install_app()
 {
   local ncp_app=$1
-
-  # $1 can be either an installed app name or an app script
-  if [[ -f "$ncp_app" ]]; then
-    local script="$ncp_app"
-    local ncp_app="$(basename "$script" .sh)"
-  else
-    local script="$(find "$BINDIR" -name $ncp_app.sh | head -1)"
-  fi
-
+  ##Prepare absolute path
+  script="$BINDIR/scripts/$ncp_app"
   # do it
-  unset install
+  unset install_script
   source "$script"
-  echo "Installing $ncp_app"
-  (install)
+  (install_script)
 }
 
 function cleanup_script()

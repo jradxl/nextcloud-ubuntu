@@ -16,16 +16,8 @@ set -e"$DBG"
 
 [[ ${EUID} -ne 0 ]] && {
   printf "Must be run as root. Try 'sudo %s'\n", "$0"
-  #exit 1
+  exit 1
 }
-
-##Temp Dir and contents must exist thru multiple invocations to aid development and debugging.
-TEMPDIR="/tmp/nc-ubuntu"
-mkdir -p "$TEMPDIR" || { echo "Failure to create temp dir." ; exit 1 ; }
-echo "Temp Created: $TEMPDIR"
-CODE_DIR_TMP="${TEMPDIR}"/nextcloud-ubuntu
-
-##trap 'rm -rf \"${TEMPDIR}\"' 0 1 2 3 15
 
 export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
 
@@ -33,27 +25,19 @@ export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
 type mysqld &>/dev/null && echo ">>> WARNING: existing mysqld configuration will be changed <<<"
 type mysqld &>/dev/null && mysql -e 'use nextcloud' &>/dev/null && { echo "The 'nextcloud' database already exists. Aborting"; exit 1; }
 
+rm -f /etc/apt/sources.list.d/mariadb.list.old*
+
 # get dependencies
 apt-get update
-apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release wget curl
 
-# get install code for first time...
-if [[ ! -f "$CODE_DIR_TMP/install.sh" ]]; then
-  echo "Getting build code for first time..."
-  #git clone -b "${BRANCH}" https://github.com/jradxl/nextcloud-ubuntu.git "${CODE_DIR_TMP}"
-  git clone https://github.com/jradxl/nextcloud-ubuntu.git "${CODE_DIR_TMP}"
-else
-  echo "Code already downloaded, so checking for updates..."
-  git pull
-fi
+##Only EN, US and GB language-pack
+apt-get install --no-install-recommends -y language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart
+locale-gen en_GB.utf8 en_US.utf8
 
-cd "$CODE_DIR_TMP"
 
-# install NCP
 echo -e "\nInstalling NextCloud-Ubuntu..."
-# shellcheck source=etc/library.sh
-# shellcheck source=/dev/null
-source etc/library.sh
+# shellcheck source=scripts/library.sh
+source scripts/library.sh
 
 # check distro
 check_distro etc/ncp.cfg || {
@@ -62,21 +46,29 @@ check_distro etc/ncp.cfg || {
   exit 1;
 }
 
-exit 0
 
-# indicate that this will be an image build
-touch /.ncp-image
 
-mkdir -p /usr/local/etc/ncp-config.d/
-cp etc/ncp-config.d/nc-nextcloud.cfg /usr/local/etc/ncp-config.d/
-cp etc/library.sh /usr/local/etc/
-cp etc/ncp.cfg /usr/local/etc/
-
-cp -r etc/ncp-templates /usr/local/etc/
+#mkdir -p /usr/local/etc/ncp-config.d/
+#cp etc/ncp-config.d/nc-nextcloud.cfg /usr/local/etc/ncp-config.d/
+#cp etc/library.sh /usr/local/etc/
+#cp etc/ncp.cfg /usr/local/etc/
+#cp -r etc/ncp-templates /usr/local/etc/
 
 ##install_app    lamp.sh
-#Linux. Nginx, MariaDB, PHP
-install_app    lnmp.sh
+#LEMP Linux. Nginx, MariaDB, PHP 
+install_app    nginx.sh
+install_app    php-fpm.sh
+install_app    mariadb.sh
+
+echo "UPGRADING..."
+apt-get -y upgrade
+
+echo "NEEDRESTART..."
+#needrestart -ra
+needrestart -b
+
+echo "FINISHED."
+exit 0
 
 ##Check Nginx, PHP-FPM and MariaDB are running
 install_app    bin/ncp/CONFIG/nc-nextcloud.sh
