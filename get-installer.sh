@@ -25,6 +25,11 @@ set -e"$DBG"
   exit 1
 }
 
+if [[ -f "./install.sh"  ]]; then
+  echo "Do not run get-installer.sh from within the project directory."
+  exit 1
+fi
+
 git clone -b "${BRANCH}" https://github.com/jradxl/nextcloud-ubuntu.git 
 RET="$?"
 if [[ $RET = "0" ]]; then
