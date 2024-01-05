@@ -26,10 +26,14 @@ set -e"$DBG"
 }
 
 git clone -b "${BRANCH}" https://github.com/jradxl/nextcloud-ubuntu.git 
-echo "$?"
-
-echo "Now change to the project directory created and run ./install.sh"
-exit 0
+RET="$?"
+if [[ $RET = "0" ]]; then
+  echo "SUCCESS: Now change to the project directory created, <nextcloud-ubuntu> and run ./install.sh"
+  exit 0
+else
+  echo "FAILED, sorry!"
+  exit 1
+fi
 
 # License
 #
