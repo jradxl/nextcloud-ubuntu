@@ -1,4 +1,19 @@
 
+
+##Start wuth Skip
+systemctl set-environment MYSQLD_OPTS="--skip-grant-tables --skip-networking"
+systemctl start mariadb
+systemctl status mariadb
+mariadb  -e "SELECT Host, User, Password, Plugin from mysql.user where Password='invalid;'"
+
+mariadb  -e "SELECT Host, User, Password, Plugin from mysql.user where User='root' AND Password='invalid'"
+
+mariadb  -e "ALTER USER root@localhost IDENTIFIED VIA mysql_native_password;"
+ERROR 1290 (HY000) at line 1: The MariaDB server is running with the --skip-grant-tables option so it cannot execute this statement
+
+
+mariadb  -e "SET PASSWORD = PASSWORD('foo');"
+
 /etc/my.cnf
 [mariadb]
 unix_socket=OFF
