@@ -27,7 +27,7 @@ function install_app()
   # do it
   unset install_script
 # shellcheck source=/dev/null
-  source "${script}"
+  . "${script}"
   (install_script)
 }
 

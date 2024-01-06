@@ -19,6 +19,12 @@ set -e"$DBG"
   exit 1
 }
 
+# shellcheck source=/dev/null
+source scripts/library.sh
+
+install_app mariadb-test.sh
+exit 0
+
 export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
 APTINSTALL="apt-get install -y --no-install-recommends"
 
@@ -32,13 +38,16 @@ rm -f /etc/apt/sources.list.d/mariadb.list.old*
 apt-get update
 
 ##Only EN, US and GB language-pack
-$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq ssl-cert expect
+$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq ssl-cert
+
+##Inconvenient
+apt-get -y purge needrestart
+apt-get -y autoremove 
+
 locale-gen en_GB.utf8 en_US.utf8
 
 echo -e "\nInstalling NextCloud-Ubuntu..."
 
-# shellcheck source=/dev/null
-source scripts/library.sh
 
 # check distro
 check_distro etc/ncp.cfg || {

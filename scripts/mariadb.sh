@@ -68,81 +68,53 @@ echo "$rootpasswd"
 
 }
 
-function install_mariadb () {
-    # Instalar mysql (mariadb), reiniciar, activar y ejecutar al inicio
-    # Install mysql (mariadb), restart, activate and run at startup
-        apt -y install expect
+function mariadb_create_account() {
+ 
+    ## Secure Mariadb
+    
+    ##Test for Unix Socket
+    RET="$(/usr/bin/mariadb -e 'FLUSH PRIVILEGES;')"
+    echo "$RET"
+    
+    DBROOTPW="secret"
+    #If password needed
+    RET="$(/usr/bin/mariadb -u root -p$DBROOTPW -e 'FLUSH PRIVILEGES;')"
+    echo "$RET"
 
-        SECURE_MYSQL=$(expect -c "
-        set timeout 10
-        spawn mysql_secure_installation
-        expect \"Enter current password for root (enter for none):\"
-        send \"${rootpasswd}\r\"
-        expect \"Change the root password?\"
-        send \"n\r\"
-        expect \"Remove anonymous users?\"
-        send \"y\r\"
-        expect \"Disallow root login remotely?\"
-        send \"y\r\"
-        expect \"Remove test database and access to it?\"
-        send \"y\r\"
-        expect \"Reload privilege tables now?\"
-        send \"y\r\"
-        expect eof
-        ")
+    exit 0
+    
+    #1. Set password
 
-        apt -y purge expect
-        apt autoremove -y
-    # Creación base datos, usuario, privilegios
-    # Database creation, user, privileges
-        mysql -uroot -p"${rootpasswd}" -e "CREATE DATABASE nextcloud;"
-        mysql -uroot -p"${rootpasswd}" -e "GRANT ALL PRIVILEGES ON nextcloud.* TO 'admin'@'localhost' IDENTIFIED BY '${rootpasswd}';"
-        mysql -uroot -p"${rootpasswd}" -e "FLUSH PRIVILEGES;"
+    #2. Remove anonymous users
+
+    #3. Disallow remote root login users
+
+    #4. Remove Test DB and access
+
+    #5. Reload Privilege table
+
+
+    # Nextcloud Database creation, user, and privileges
+    # No password needed with Socket Auth
+    mariadb -e "CREATE DATABASE nextcloud;"
+    mariadb -e "GRANT ALL PRIVILEGES ON nextcloud.* TO 'admin'@'localhost' IDENTIFIED BY '${rootpasswd}';"
+    mariadb -e "FLUSH PRIVILEGES;"
+
 }
-
-function ask_mysql_password() {
-        # Ask for password for the root user for Mysql and the same for the admin user for Nextcloud
-        echo ""
-        echo "Please enter a password to configure the admin user for Nextcloud and the root user for MySQL:"
-        read -r -p "Root Password: " rootpasswd
-}
-
-MARIADB="/usr/bin/mariadb --defaults-file=/etc/mysql/debian.cnf"
-MYADMIN="/usr/bin/mariadb-admin --defaults-file=/etc/mysql/debian.cnf"
-# Don't run full mariadb-upgrade on every server restart, use --version-check to do it only once
-MYUPGRADE="/usr/bin/mariadb-upgrade --defaults-extra-file=/etc/mysql/debian.cnf --version-check --silent"
-MYCHECK="/usr/bin/mariadb-check --defaults-file=/etc/mysql/debian.cnf"
-MYCHECK_SUBJECT="WARNING: mariadb-check has found corrupt tables"
-MYCHECK_PARAMS="--all-databases --fast --silent"
-MYCHECK_RCPT="${MYCHECK_RCPT:-root}"
-
-##See /etc/mysql/debian-start
-##See /usr/share/mysql/debian-start.inc.sh
-
-#ALTER USER root@localhost IDENTIFIED VIA mysql_native_password;
-#SET PASSWORD = PASSWORD('foo');
-#GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED WITH unix_socket WITH GRANT OPTION;
-# /root/.my.cnf
-#[client]
-#password=foo
-#[mariadb]
-#unix_socket=OFF
-#disable_unix_socket
-
-##Info only
-#CREATE USER `mariadb.sys`@`localhost` ACCOUNT LOCK PASSWORD EXPIRE
-#GRANT SELECT, DELETE ON `mysql`.`global_priv` TO `mariadb.sys`@`localhost`;
-#mysql user with invalid as password is correct.
 
 function check_root_accounts() {
-  set -e
-  set -u
 
-  logger -p daemon.info -i -t"$0" "Checking for insecure root accounts."
+  #Check for Unix Socket Auth so this script can access MariaDB without root password.
 
-  ret=$( echo "SELECT count(*) FROM mysql.user WHERE user='root' and password='' and plugin in ('', 'mysql_native_password', 'mysql_old_password');" | $MARIADB --skip-column-names )
-  if [ "$ret" -ne "0" ]; then
-    logger -p daemon.warn -i -t"$0" "WARNING: mysql.user contains $ret root accounts without password!"
+  #If not Unix Socket Auth and there is no password, do all config before creating one.
+
+  #If already Root password and is not given to this script, do no config.
+
+
+  #Check for No password root account, and 
+
+  RET=$( mariadb -e "SELECT count(*) FROM mysql.user WHERE user='root' and password='' and plugin in ('', 'mysql_native_password', 'mysql_old_password');" )
+  if [ "$RET" -ne "0" ]; then
+    printf "MariaDB has %s Root accounts with ", "$RET"
   fi
 }
-
