@@ -1,3 +1,27 @@
+systemctl set-environment MYSQLD_OPTS="--no-defaults"
+systemctl restart mariadb
+mariadb  -e "SELECT Host, User, Password, Plugin from mysql.user where User='root'"
+mariadb  -e "SET PASSWORD = PASSWORD('foo');"
+mariadb  -e "SELECT CURRENT_USER();"
+mariadb  -e "SET PASSWORD FOR 'jeffrey'@'localhost' = 'foo';
+mariadb  -e "SELECT LENGTH(Password) from mysql.user where User='root'"
+
+mariadb -e "SELECT PLUGIN_STATUS FROM information_schema.plugins WHERE PLUGIN_NAME='unix_socket';"
+
+
+mariadb -uroot -pfoo -e "SELECT PLUGIN_STATUS FROM information_schema.plugins WHERE PLUGIN_NAME='unix_socket';"
++---------------+
+| PLUGIN_STATUS |
++---------------+
+| DISABLED      |
++---------------+
+
+
+mariadb -uroot -pfoXXo -e "SELECT PLUGIN_STATUS FROM information_schema.plugins WHERE PLUGIN_NAME='unix_socket';"
+ERROR 1524 (HY000): Plugin 'unix_socket' is not loaded
+root@nc-ubuntu1:~# echo $?
+1
+
 
 
 ##Start wuth Skip
