@@ -31,9 +31,9 @@ install_script()
     ;;
   esac
 
-  systemctl restart php-fpm
+  systemctl restart php"$PHPVER"-fpm
 
-  if ( systemctl -q is-active php8.2-fpm ); then
+  if ( systemctl -q is-active php"$PHPVER"-fpm ); then
     echo "    PHP-FPM is running."
   else
     echo "    PHP-FPM is NOT running."
