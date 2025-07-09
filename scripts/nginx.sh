@@ -18,6 +18,8 @@ install_script()
   echo "    Installing NGINX package..."
   $APTINSTALL nginx
 
+  systemctl restart nginx
+
   if (systemctl -q is-active nginx); then
     echo "    Nginx is running."
   else
