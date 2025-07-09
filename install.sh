@@ -14,59 +14,71 @@ BRANCH="${BRANCH:-main}"
 
 set -e"$DBG"
 
+CWDDIR=$(pwd)
+
 [[ ${EUID} -ne 0 ]] && {
   printf "Must be run as root. Try 'sudo %s'\n", "$0"
   exit 1
 }
 
+if [[ ! -f ./.env ]]; then
+	echo "File .env does not exist. Exiting."
+	exit 1
+fi
+source ./.env
+
+if [[ ! -f ./scripts/library.sh ]]; then
+	echo "Missing library.sh. Exiting"
+	exit 1
+fi
 # shellcheck source=/dev/null
-source scripts/library.sh
+source ./scripts/library.sh
+echo "CWDDIR: $CWDDIR"
+echo "NCPCFG: $NCPCFG"
 
-install_app mariadb-test.sh
-exit 0
-
-export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
-APTINSTALL="apt-get install -y --no-install-recommends"
-
-# check installed software
-type mysqld &>/dev/null && echo ">>> WARNING: existing mysqld configuration will be changed <<<"
-type mysqld &>/dev/null && mysql -e 'use nextcloud' &>/dev/null && { echo "The 'nextcloud' database already exists. Aborting"; exit 1; }
-
-rm -f /etc/apt/sources.list.d/mariadb.list.old*
+echo "Installing Dependancies..."
 
 # get dependencies
 apt-get update
-
-##Only EN, US and GB language-pack
-$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https needrestart jq ssl-cert
+#echo "UPGRADING..."
+apt-get -y upgrade
+# #Only EN, US and GB language-pack
+$APTINSTALL language-pack-en locales git ca-certificates sudo lsb-release wget curl gnupg2 ubuntu-keyring apt-transport-https jq ssl-cert software-properties-common
 
 ##Inconvenient
 apt-get -y purge needrestart
 apt-get -y autoremove 
 
-locale-gen en_GB.utf8 en_US.utf8
-
-echo -e "\nInstalling NextCloud-Ubuntu..."
-
-
-# check distro
-check_distro etc/ncp.cfg || {
+# calling check distro in scripts/library.sh
+check_distro  || {
   echo "ERROR: distro not supported:";
   cat /etc/issue
   exit 1;
 }
 
+# calling  scripts/mariadb-test.sh
+######  install_app mariadb-test.sh
+
+#export PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
+
+#rm -f /etc/apt/sources.list.d/mariadb.list.old*
+rm -f $(compgen -G "/etc/apt/sources.list.d/mariadb.list.old*")
+
+locale-gen en_GB.utf8 en_US.utf8
+echo -e "\nInstalling NextCloud-Ubuntu..."
+
 install_app    nginx.sh
 install_app    php-fpm.sh
+
+# calling  scripts/mariadb-test.sh
+#install_app    mariadb-test.sh
 install_app    mariadb.sh
 
-echo "UPGRADING..."
-apt-get -y upgrade
-
-echo "NEEDRESTART..."
+#echo "NEEDRESTART..."
 #needrestart -ra
-needrestart -b
+#needrestart -b
 
+echo ""
 echo "FINISHED."
 exit 0
 

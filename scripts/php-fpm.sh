@@ -1,24 +1,41 @@
 #!/bin/bash
 
-APTINSTALL="apt-get install -y --no-install-recommends"
-APTREPOSITORY="add-apt-repository -y"
-export DEBIAN_FRONTEND=noninteractive
+## On PLUCKY, install ubuntu repo version
 
 install_script()
 {
-  echo "Installing PHP-FPM..."
-  
-  DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8 $APTREPOSITORY ppa:ondrej/php
-  apt-get update
-  PHPVER=8.2
-  $APTINSTALL \
-  php${PHPVER} php${PHPVER}-curl php${PHPVER}-gd php${PHPVER}-fpm php${PHPVER}-cli php${PHPVER}-opcache \
-  php${PHPVER}-mbstring php${PHPVER}-xml php${PHPVER}-zip php${PHPVER}-fileinfo php${PHPVER}-ldap \
-  php${PHPVER}-intl php${PHPVER}-bz2 php${PHPVER}-mysql
+  echo "    Installing PHP-FPM..."
+
+  PHPVER=$(jq -r .php_version "$NCPCFG")
+  UBUNTUVERSION=$(lsb_release -cs)
+
+  case "$UBUNTUVERSION" in
+  "noble")
+    add-apt-repository ppa:ondrej/php
+    apt-get update
+    $APTINSTALL \
+    php${PHPVER} php${PHPVER}-curl php${PHPVER}-gd php${PHPVER}-fpm php${PHPVER}-cli php${PHPVER}-opcache \
+    php${PHPVER}-mbstring php${PHPVER}-xml php${PHPVER}-zip php${PHPVER}-fileinfo php${PHPVER}-ldap \
+    php${PHPVER}-intl php${PHPVER}-bz2 php${PHPVER}-mysql    
+    ;;
+  "plucky")
+    echo "NOTICE: Installing PHP-FPM from the Ubuntu Repo"
+    $APTINSTALL \
+    php${PHPVER} php${PHPVER}-curl php${PHPVER}-gd php${PHPVER}-fpm php${PHPVER}-cli php${PHPVER}-opcache \
+    php${PHPVER}-mbstring php${PHPVER}-xml php${PHPVER}-zip php${PHPVER}-fileinfo php${PHPVER}-ldap \
+    php${PHPVER}-intl php${PHPVER}-bz2 php${PHPVER}-mysql    
+    ;;
+  *)
+    echo "Unsupported Ubuntu Version."
+    return 0
+    ;;
+  esac
+
+  systemctl restart php-fpm
 
   if ( systemctl -q is-active php8.2-fpm ); then
-    echo "PHP-FPM is running."
+    echo "    PHP-FPM is running."
   else
-    echo "PHP-FPM is NOT running."
+    echo "    PHP-FPM is NOT running."
   fi
 }

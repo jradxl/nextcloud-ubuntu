@@ -8,7 +8,9 @@
 #
 
 CURDIR="$(pwd)"
-NCPCFG="$CURDIR/etc/ncp.cfg"
+#NCPCFG="$CURDIR/etc/ncp.cfg"
+NCPCFG="$CURDIR/.ncp.cfg"
+APTINSTALL="apt-get install -y --no-install-recommends"
 
 function check_distro()
 {
